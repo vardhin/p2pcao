@@ -29,9 +29,13 @@ def send_message(sock):
 # Main function
 def main():
     # Getting own IP and Port
-    own_ip = input("Enter your IP address: ")
+    own_ip = socket.gethostbyname(socket.gethostname())
     own_port = int(input("Enter your port number: "))
     
+    # Displaying own IP and Port for confirmation
+    print("Your IP address:", own_ip)
+    print("Your port number:", own_port)
+
     # Getting other person's IP and Port
     other_ip = input("Enter other person's IP address: ")
     other_port = int(input("Enter other person's port number: "))
