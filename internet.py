@@ -25,13 +25,15 @@ def send_messages(con):
 # Function to start the chat as a server
 def start_server(passive_ip, passive_port):
     try:
+        print("Starting server...")
+
         # Setup server's p2p node.
         server = Net(passive_bind=passive_ip, passive_port=passive_port, node_type="passive", debug=1)
         server.start()
         server.bootstrap()
         server.advertise()
 
-        print("Server started successfully! Waiting for connections...")
+        print(f"Server started successfully! Waiting for connections on {passive_ip}:{passive_port}...")
 
         # Event loop.
         while True:
@@ -45,13 +47,15 @@ def start_server(passive_ip, passive_port):
 # Function to start the chat as a client
 def start_client(passive_ip, passive_port):
     try:
+        print("Starting client...")
+
         # Setup client's p2p node.
         client = Net(passive_bind=passive_ip, passive_port=passive_port, node_type="passive", debug=1)
         client.start()
         client.bootstrap()
         client.advertise()
 
-        print("Client started successfully! Connecting...")
+        print(f"Client started successfully! Connecting to {passive_ip}:{passive_port}...")
 
         # Event loop.
         while True:
@@ -68,12 +72,14 @@ if __name__ == "__main__":
         choice = input("Enter your choice (1 for server, 2 for client): ")
 
         if choice == '1':
-            passive_ip = input("Enter your passive IP address: ")
-            passive_port = int(input("Enter your passive port number: "))
+            print("\nTo start the server, you need to specify the IP address and port to listen on.")
+            passive_ip = input("Enter the passive IP address of this machine: ")
+            passive_port = int(input("Enter the passive port number to listen on: "))
             start_server(passive_ip, passive_port)
         elif choice == '2':
-            passive_ip = input("Enter your friend's passive IP address: ")
-            passive_port = int(input("Enter your friend's passive port number: "))
+            print("\nTo start the client, you need to specify the IP address and port of the server you want to connect to.")
+            passive_ip = input("Enter the passive IP address of the server: ")
+            passive_port = int(input("Enter the passive port number of the server: "))
             start_client(passive_ip, passive_port)
         else:
             print("Invalid choice. Please try again.")
