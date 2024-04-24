@@ -3,7 +3,8 @@ import websockets
 import json
 
 async def receive_messages():
-    uri = "ws://localhost:8765"
+    ipaddress = input("Enter IP address of the server: ")
+    uri = f"ws://{ipaddress}:8765"
     async with websockets.connect(uri, ping_interval=None) as websocket:
         while True:
             message = await websocket.recv()
@@ -11,7 +12,8 @@ async def receive_messages():
             print(f"Received message from server: {data}")
 
 async def send_message():
-    uri = "ws://localhost:8765"
+    ipaddress = input("Enter IP address of the server: ")
+    uri = f"ws://{ipaddress}:8765"
     async with websockets.connect(uri, ping_interval=None) as websocket:
         while True:
             data = {"type": "message", "content": input("Enter your message: ")}
