@@ -22,7 +22,7 @@ class WebSocketClientApp(App):
     def build(self):
         self.key_pressed = None
         Window.bind(on_key_down=self.on_key_down)
-        asyncio.ensure_future(self.start_client())
+        asyncio.create_task(self.start_client())  # Changed to create_task
         return Label(text="Press space to send 'buzz' message to the WebSocket server")
 
 if __name__ == '__main__':
