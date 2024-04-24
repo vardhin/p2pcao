@@ -6,15 +6,18 @@ from kivy.core.window import Window
 
 class WebSocketClientApp(App):
     async def start_client(self):
-        async with websockets.connect("ws://localhost:8765") as websocket:
-            done = False
-            while not done:
-                await asyncio.sleep(0.1)
-                if self.key_pressed == "space":
-                    await websocket.send("buzz")
-                    message = await websocket.recv()
-                    print(message)
-                    done = True
+        try:
+            async with websockets.connect("ws://localhost:8765") as websocket:
+                done = False
+                while not done:
+                    await asyncio.sleep(0.1)
+                    if self.key_pressed == "space":
+                        await websocket.send("buzz")
+                        message = await websocket.recv()
+                        print(message)
+                        done = True
+        except websockets.exceptions.ConnectionClosedError:
+            print("Server connection closed unexpectedly.")
 
     def on_key_down(self, keyboard, keycode, text, modifiers):
         self.key_pressed = text
