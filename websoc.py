@@ -2,7 +2,6 @@ import asyncio
 import argparse
 import websockets
 from prompt_toolkit import prompt
-from prompt_toolkit.shortcuts import message_dialog
 
 
 class P2PChatClient:
@@ -33,7 +32,7 @@ class P2PChatClient:
 
 
 async def connect_to_friend():
-    host = input("Enter your friend's IP address or hostname: ")
+    host = input("Enter the server's IP address or hostname: ")
     port = input("Enter the port number (default is 8765): ") or 8765
 
     client = P2PChatClient(host, port)
@@ -63,14 +62,22 @@ async def start_server(port):
 
 async def main():
     parser = argparse.ArgumentParser(description="P2P Chat System")
-    parser.add_argument("-s", "--server", action="store_true", help="Start as server")
     parser.add_argument("-p", "--port", type=int, default=8765, help="Port number")
     args = parser.parse_args()
 
-    if args.server:
+    print("Welcome to the P2P Chat System!")
+    print("Choose an option:")
+    print("1. Host a server")
+    print("2. Connect to a server")
+
+    choice = input("Enter your choice (1/2): ")
+
+    if choice == "1":
         await start_server(args.port)
-    else:
+    elif choice == "2":
         await connect_to_friend()
+    else:
+        print("Invalid choice. Please enter 1 or 2.")
 
 
 if __name__ == "__main__":
