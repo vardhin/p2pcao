@@ -1,10 +1,13 @@
 import asyncio
 import websockets
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.core.window import Window
 
-# create an empty list to store clients
+# Create an empty list to store clients
 clients = []
 
-# define a function to handle incoming messages from clients
+# Define a function to handle incoming messages from clients
 async def handle_message(websocket, path):
     global clients
     global fastest_time
@@ -19,11 +22,15 @@ async def handle_message(websocket, path):
             t = round(response_time - fastest_time, 2)
             await websocket.send(f"Response time: {t} sec slower.")
 
-# start the websocket server
-async def start_server():
-    async with websockets.serve(handle_message, "localhost", 8765):
-        print('Websockets Server Started')
-        await asyncio.Future()
+class WebSocketServerApp(App):
+    async def start_server(self):
+        async with websockets.serve(handle_message, "localhost", 8765):
+            print('Websockets Server Started')
+            await asyncio.Future()
 
-# run the server
-asyncio.run(start_server())
+    def build(self):
+        asyncio.create_task(self.start_server())
+        return Label(text="WebSocket server running...")
+
+if __name__ == '__main__':
+    WebSocketServerApp().run()
