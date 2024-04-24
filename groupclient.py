@@ -1,38 +1,25 @@
 import asyncio
 import websockets
+import json
 
-# start the websocket client
-async def start_client():
-    async with websockets.connect("ws://localhost:8765") as websocket:
-        done = False
-        while not done:
-            print("~~~~~~~~~SafeTalkzzz~~~~~~~~~~")
-            print("~~~~~~~~~ClientSide~~~~~~~~~~~")
-            print("1. Lets chat")
-            print("2. Exit")
-            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-            option = int(input("Select: "))
-            if option == 1:
-                chatting = True
-                while chatting:
-                    message = input("Type: ")
-                    if ":exit:" in message:
-                        print("exiting...")
-                        done = True
-                        break
-                    await send_message(websocket, message)  # Use await here
-                    print(await recieve_message(websocket))  # Use await here
-            elif option == 2:
-                done = True
+async def receive_messages():
+    uri = "ws://localhost:8765"
+    async with websockets.connect(uri, ping_interval=None) as websocket:
+        while True:
+            message = await websocket.recv()
+            data = json.loads(message)
+            print(f"Received message from server: {data}")
 
-async def send_message(websocket, message):
-    await websocket.send(message)
-    response = await websocket.recv()
-    print(response)
+async def send_message():
+    uri = "ws://localhost:8765"
+    async with websockets.connect(uri, ping_interval=None) as websocket:
+        while True:
+            data = {"type": "message", "content": input("Enter your message: ")}
+            await websocket.send(json.dumps(data))
 
-async def recieve_message(websocket):
-    message = await websocket.recv()
-    return message
+async def main():
+    receive_task = asyncio.create_task(receive_messages())
+    send_task = asyncio.create_task(send_message())
+    await asyncio.wait([receive_task, send_task], return_when=asyncio.FIRST_COMPLETED)
 
-# run the client
-asyncio.run(start_client())
+asyncio.run(main())
