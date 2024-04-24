@@ -1,32 +1,38 @@
 import asyncio
 import websockets
-from kivy.app import App
-from kivy.uix.label import Label
-from kivy.core.window import Window
 
-class WebSocketClientApp(App):
-    async def start_client(self):
-        try:
-            async with websockets.connect("ws://localhost:8765") as websocket:
-                done = False
-                while not done:
-                    await asyncio.sleep(0.1)
-                    if self.key_pressed == "space":
-                        await websocket.send("buzz")
-                        message = await websocket.recv()
-                        print(message)
+# start the websocket client
+async def start_client():
+    async with websockets.connect("ws://localhost:8765") as websocket:
+        done = False
+        while not done:
+            print("~~~~~~~~~SafeTalkzzz~~~~~~~~~~")
+            print("~~~~~~~~~ClientSide~~~~~~~~~~~")
+            print("1. Lets chat")
+            print("2. Exit")
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            option = int(input("Select: "))
+            if option == 1:
+                chatting = True
+                while chatting:
+                    message = input("Type: ")
+                    if ":exit:" in message:
+                        print("exiting...")
                         done = True
-        except websockets.exceptions.ConnectionClosedError:
-            print("Server connection closed unexpectedly.")
+                        break
+                    await send_message(websocket, message)  # Use await here
+                    print(await recieve_message(websocket))  # Use await here
+            elif option == 2:
+                done = True
 
-    def on_key_down(self, keyboard, keycode, text, modifiers):
-        self.key_pressed = text
+async def send_message(websocket, message):
+    await websocket.send(message)
+    response = await websocket.recv()
+    print(response)
 
-    def build(self):
-        self.key_pressed = None
-        Window.bind(on_key_down=self.on_key_down)
-        asyncio.create_task(self.start_client())  # Changed to create_task
-        return Label(text="Press space to send 'buzz' message to the WebSocket server")
+async def recieve_message(websocket):
+    message = await websocket.recv()
+    return message
 
-if __name__ == '__main__':
-    WebSocketClientApp().run()
+# run the client
+asyncio.run(start_client())
