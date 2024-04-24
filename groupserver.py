@@ -23,9 +23,12 @@ async def handle_message(websocket, path):
 
 class WebSocketServerApp(App):
     async def start_server(self):
-        async with websockets.serve(handle_message, "localhost", 8765):
-            print('Websockets Server Started')
-            await asyncio.Future()
+        async def serve():
+            async with websockets.serve(handle_message, "localhost", 8765):
+                print('Websockets Server Started')
+                await asyncio.Future()
+
+        await serve()
 
     async def on_start(self):
         asyncio.create_task(self.start_server())
