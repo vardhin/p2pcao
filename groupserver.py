@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 import traceback
+import socket
 
 connected_clients = {}
 
@@ -46,7 +47,10 @@ async def send_messages(websocket, client_id):
         traceback.print_exc()
 
 async def main():
-    async with websockets.serve(handle_client, "localhost", 8765):
+    # Get the IP address of the machine on the LAN
+    ip_address = socket.gethostbyname(socket.gethostname())
+    async with websockets.serve(handle_client, ip_address, 8765):
+        print(f"Server started at ws://{ip_address}:8765")
         await asyncio.Future()
 
 asyncio.run(main())
