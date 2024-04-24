@@ -1,40 +1,47 @@
 import asyncio
 import websockets
-from kivy.app import App
-from kivy.uix.label import Label
 
-# Create an empty list to store clients
+# create an empty list to store clients
 clients = []
+fastest_time = 0
 
-# Define a function to handle incoming messages from clients
+# define a function to handle incoming messages from clients
 async def handle_message(websocket, path):
     global clients
     global fastest_time
+    print("~~~~~~~~~SafeTalkzzz~~~~~~~~~~")
+    print("~~~~~~~~~ServerSide~~~~~~~~~~~")
+    print("1. Lets chat")
+    print("2. Exit")
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    option = int(input("Select: "))
+    done = False
+    while not done:
+        if (option == 1):
+            chatting = True
+            while(chatting):
+                message = input("Type: ")
+                if(":exit:" in message):
+                    print("exitting...")
+                    done = True
+                    break
+                await send_message(websocket, message)  # Use await here as well
+                print(await recieve_message(websocket))  # Use await here
+        elif (option == 2):
+            done = True
+
+async def send_message(websocket, message):
+    await websocket.send(message)
+
+async def recieve_message(websocket):
     message = await websocket.recv()
-    if message == "buzz":
-        response_time = asyncio.get_event_loop().time()
-        clients.append([websocket, response_time])
-        if len(clients) == 1:
-            await websocket.send("First place!")
-            fastest_time = response_time
-        else:
-            t = round(response_time - fastest_time, 2)
-            await websocket.send(f"Response time: {t} sec slower.")
+    return message
 
-class WebSocketServerApp(App):
-    async def start_server(self):
-        async def serve():
-            async with websockets.serve(handle_message, "localhost", 8765):
-                print('Websockets Server Started')
-                await asyncio.Future()
+# start the websocket server
+async def start_server():
+    async with websockets.serve(handle_message, "localhost", 8765):
+        print('Websockets Server Started')
+        await asyncio.Future()
 
-        await serve()
-
-    async def on_start(self):
-        asyncio.create_task(self.start_server())
-
-    def build(self):
-        return Label(text="WebSocket server running...")
-
-if __name__ == '__main__':
-    WebSocketServerApp().run()
+# run the server
+asyncio.run(start_server())
