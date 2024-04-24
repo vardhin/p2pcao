@@ -2,7 +2,6 @@ import asyncio
 import websockets
 from kivy.app import App
 from kivy.uix.label import Label
-from kivy.core.window import Window
 
 # Create an empty list to store clients
 clients = []
@@ -28,8 +27,10 @@ class WebSocketServerApp(App):
             print('Websockets Server Started')
             await asyncio.Future()
 
-    def build(self):
+    async def on_start(self):
         asyncio.create_task(self.start_server())
+
+    def build(self):
         return Label(text="WebSocket server running...")
 
 if __name__ == '__main__':
