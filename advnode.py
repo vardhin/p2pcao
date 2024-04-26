@@ -145,7 +145,8 @@ def main():
 
     try:
         # Connect to the server as a client
-        client_uri = f"ws://{ip_address}:8765"
+        friend_ip = input("Enter the ip address of your friend: ")
+        client_uri = f"ws://{friend_ip}:8765"
         asyncio.get_event_loop().run_until_complete(connect_as_client(client_uri))
 
         while True:
