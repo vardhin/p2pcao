@@ -14,7 +14,9 @@ async def handle_client(websocket, path):
         print(f"Client {client_id} connected.")
 
         receive_task = asyncio.create_task(receive_messages(websocket, client_id))
-        await receive_task
+        send_task = asyncio.create_task(send_message_forever(websocket))
+
+        await asyncio.gather(receive_task, send_task)
 
     except websockets.exceptions.ConnectionClosedError:
         print(f"Client {client_id} disconnected.")
@@ -72,8 +74,7 @@ async def main():
                 send_task = asyncio.create_task(send_message_forever(websocket))
                 receive_task = asyncio.create_task(receive_message_forever(websocket))
 
-                await send_task
-                await receive_task
+                await asyncio.gather(send_task, receive_task)
 
 async def send_message_forever(websocket):
     while True:
