@@ -75,7 +75,7 @@ async def disconnect_from_client(client_id):
 
 async def main():
     # Get the IP address of the machine on the LAN
-    ip_address = socket.gethostbyname(socket.gethostname())
+    other_ip = input("Enter the IP address of the other device: ")
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
         
