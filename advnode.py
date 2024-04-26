@@ -40,7 +40,7 @@ async def receive_messages(websocket, client_id):
 async def send_messages(websocket, client_id):
     try:
         while True:
-            await asyncio.sleep(5)  # Adjust this delay as needed
+            await asyncio.sleep(99999)  # Adjust this delay as needed
             # Send a dummy JSON message to keep the connection alive
             await websocket.ping()
     except websockets.exceptions.ConnectionClosedError:
@@ -80,10 +80,25 @@ async def main():
         other_ip = input("Enter the IP address of the other device: ")
         async with websockets.connect(f"ws://{other_ip}:8765") as websocket:
             print(f"Connected to {other_ip}")
-            await websocket.send(json.dumps({"to": "server", "message": "Hello from client"}))
-            response = await websocket.recv()
-            print(f"Received from server: {response}")
+            Done = False
+            while (Done != True):
+                data = {"type": "message", "content": input("Enter your message: ")}
+                Done = check_command(data)
+                send_message(websocket, data)
+                response = await websocket.recv()
+                print(f"Received from server: {response}")
+                
 
         await asyncio.Future()
 
+
+async def send_message(websocket, message):
+    await websocket.send(json.dumps(message))
+    
+def check_command(message):
+    if("/exit" in message):
+        print("Exitting...")
+        return True
+
 asyncio.run(main())
+ 
