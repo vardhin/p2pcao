@@ -2,11 +2,8 @@ import asyncio
 import websockets
 import json
 import traceback
-from asyncore import loop
-import concurrent.futures
 
 connected_clients = {}
-executor = concurrent.futures.ThreadPoolExecutor()
 
 async def handle_client(websocket, path):
     try:
@@ -16,10 +13,8 @@ async def handle_client(websocket, path):
 
         receive_task = asyncio.create_task(receive_messages(websocket, client_id))
         send_task = asyncio.create_task(send_message_forever(websocket))
-        loop = asyncio.get_event_loop()
-        display_task = loop.run_in_executor(executor, display_message, websocket)
 
-        await asyncio.gather(receive_task, send_task, display_task)
+        await asyncio.gather(receive_task, send_task)
 
     except websockets.exceptions.ConnectionClosedError:
         print(f"Client {client_id} disconnected.")
@@ -35,32 +30,17 @@ async def receive_messages(websocket, client_id):
         try:
             data = json.loads(message)
             print(f"Received message from client {client_id}: {data}")
-            if 'to' in data and 'message' in data:
-                recipient_id = data['to']
-                await send_message_to_client(recipient_id, data['message'])
-            else:
-                await broadcast_message(message, client_id)
+            await broadcast_message(message)  # Broadcast message to all clients
         except Exception as e:
             print(f"Error processing message from client {client_id}: {e}")
             traceback.print_exc()
 
-async def send_message_to_client(recipient_id, message):
-    if recipient_id in connected_clients:
-        recipient_websocket = connected_clients[recipient_id]
-        try:
-            await recipient_websocket.send(json.dumps({"from": "server", "message": message}))
-        except websockets.exceptions.ConnectionClosedError:
-            print(f"Client {recipient_id} is disconnected. Failed to send message.")
-    else:
-        print(f"Client {recipient_id} not found. Failed to send message.")
-
-async def broadcast_message(message, sender_id):
+async def broadcast_message(message):
     for client_id, client_websocket in connected_clients.items():
-        if client_id != sender_id:  # Avoid sending the message back to the sender
-            try:
-                await client_websocket.send(message)
-            except websockets.exceptions.ConnectionClosedError:
-                print(f"Client {client_id} is disconnected. Failed to send message.")
+        try:
+            await client_websocket.send(message)
+        except websockets.exceptions.ConnectionClosedError:
+            print(f"Client {client_id} is disconnected. Failed to send message.")
 
 async def main():
     ip_address = input("Enter your damn ip address: ")
@@ -95,17 +75,5 @@ async def receive_message_forever(websocket):
 
 async def send_message(websocket, message):
     await websocket.send(json.dumps(message))
-
-def display_message(websocket):
-    while True:
-        try:
-            message = websocket.recv()
-            print(f"Received from client: {message}")
-        except websockets.exceptions.ConnectionClosedError:
-            print("Connection to client closed.")
-            break
-        except Exception as e:
-            print(f"Error receiving message from client: {e}")
-            traceback.print_exc()
 
 asyncio.run(main())
