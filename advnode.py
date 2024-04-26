@@ -3,8 +3,10 @@ import websockets
 import json
 import traceback
 import socket
+import concurrent.futures
 
 connected_clients = {}
+executor = concurrent.futures.ThreadPoolExecutor()
 
 async def handle_client(websocket, path):
     try:
@@ -39,10 +41,11 @@ async def receive_messages(websocket, client_id):
 
 async def send_messages(websocket, client_id):
     try:
+        loop = asyncio.get_event_loop()
         while True:
-            await asyncio.sleep(99999)  # Adjust this delay as needed
+            await loop.run_in_executor(executor, asyncio.sleep, 99999)  # Adjust this delay as needed
             # Send a dummy JSON message to keep the connection alive
-            await websocket.ping()
+            await loop.run_in_executor(executor, websocket.ping)
     except websockets.exceptions.ConnectionClosedError:
         print(f"Client {client_id} disconnected during send operation.")
     except Exception as e:
@@ -80,25 +83,27 @@ async def main():
         other_ip = input("Enter the IP address of the other device: ")
         async with websockets.connect(f"ws://{other_ip}:8765") as websocket:
             print(f"Connected to {other_ip}")
-            Done = False
-            while (Done != True):
-                data = {"type": "message", "content": input("Enter your message: ")}
-                Done = check_command(data)
-                send_message(websocket, data)
-                response = await websocket.recv()
-                print(f"Received from server: {response}")
-                
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                send_future = executor.submit(send_message_forever, websocket)
+                receive_future = executor.submit(receive_message_forever, websocket)
 
-        await asyncio.Future()
+                await asyncio.wait([send_future, receive_future], return_when=asyncio.FIRST_COMPLETED)
 
+async def send_message_forever(websocket):
+    while True:
+        message = input("Enter your message: ")
+        if message == "/exit":
+            print("Exiting...")
+            break
+        data = {"type": "message", "content": message}
+        await send_message(websocket, data)
+
+async def receive_message_forever(websocket):
+    while True:
+        response = await websocket.recv()
+        print(f"Received from server: {response}")
 
 async def send_message(websocket, message):
     await websocket.send(json.dumps(message))
-    
-def check_command(message):
-    if("/exit" in message):
-        print("Exitting...")
-        return True
 
 asyncio.run(main())
- 
