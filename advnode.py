@@ -16,6 +16,7 @@ async def handle_client(websocket, path):
 
         receive_task = asyncio.create_task(receive_messages(websocket, client_id))
         send_task = asyncio.create_task(send_message_forever(websocket))
+        loop = asyncio.get_event_loop()
         display_task = loop.run_in_executor(executor, display_message, websocket)
 
         await asyncio.gather(receive_task, send_task, display_task)
