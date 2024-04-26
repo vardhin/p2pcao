@@ -34,7 +34,7 @@ async def receive_messages(websocket, client_id):
                 recipient_id = data['to']
                 await send_message_to_client(recipient_id, data['message'])
             else:
-                print(f"Message from client {client_id}: {data}")
+                await broadcast_message(message, client_id)
         except Exception as e:
             print(f"Error processing message from client {client_id}: {e}")
             traceback.print_exc()
@@ -48,6 +48,14 @@ async def send_message_to_client(recipient_id, message):
             print(f"Client {recipient_id} is disconnected. Failed to send message.")
     else:
         print(f"Client {recipient_id} not found. Failed to send message.")
+
+async def broadcast_message(message, sender_id):
+    for client_id, client_websocket in connected_clients.items():
+        if client_id != sender_id:  # Avoid sending the message back to the sender
+            try:
+                await client_websocket.send(message)
+            except websockets.exceptions.ConnectionClosedError:
+                print(f"Client {client_id} is disconnected. Failed to send message.")
 
 async def main():
     ip_address = input("Enter your damn ip address: ")
