@@ -48,11 +48,37 @@ async def send_message_to_client(recipient_id, message):
         print(f"Client {recipient_id} not found. Failed to send message.")
 
 async def main():
-    # Get the IP address of the machine on the LAN
-    ip_address = input("Enter IP address of your device: ") 
+    ip_address = input("Enter your damn ip address: ")
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
-        
-        await asyncio.Future()  # Just to keep the server running
+
+        while True:
+            choice = input("Do you want to connect to another instance? (yes/no): ").lower()
+            if choice != 'yes':
+                break
+            other_ip = input("Enter the IP address of the other device: ")
+            async with websockets.connect(f"ws://{other_ip}:8765") as websocket:
+                print(f"Connected to {other_ip}")
+                send_future = asyncio.create_task(send_message_forever(websocket))
+                receive_future = asyncio.create_task(receive_message_forever(websocket))
+
+                await asyncio.wait([send_future, receive_future], return_when=asyncio.FIRST_COMPLETED)
+
+async def send_message_forever(websocket):
+    while True:
+        message = input("Enter your message: ")
+        if message == "/exit":
+            print("Exiting...")
+            break
+        data = {"type": "message", "content": message}
+        await send_message(websocket, data)
+
+async def receive_message_forever(websocket):
+    while True:
+        response = await websocket.recv()
+        print(f"Received from server: {response}")
+
+async def send_message(websocket, message):
+    await websocket.send(json.dumps(message))
 
 asyncio.run(main())
