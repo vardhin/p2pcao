@@ -33,7 +33,7 @@ async def receive_messages(websocket, client_id):
                 recipient_id = data['to']
                 await send_message_to_client(recipient_id, data['message'])
             else:
-                await broadcast_message(message)
+                await broadcast_message(client_id, message)
         except Exception as e:
             print(f"Error processing message from client {client_id}: {e}")
             traceback.print_exc()
@@ -46,19 +46,21 @@ async def send_messages(websocket, client_id):
                 print("Exiting...")
                 break
             data = {"from": client_id, "message": message}
-            await broadcast_message(json.dumps(data))
+            await broadcast_message(client_id, json.dumps(data))
     except websockets.exceptions.ConnectionClosedError:
         print(f"Client {client_id} disconnected during send operation.")
     except Exception as e:
         print(f"Error sending message from client {client_id}: {e}")
         traceback.print_exc()
 
-async def broadcast_message(message):
+async def broadcast_message(sender_id, message):
     for client_id, client_websocket in connected_clients.items():
-        try:
-            await client_websocket.send(message)
-        except websockets.exceptions.ConnectionClosedError:
-            print(f"Client {client_id} is disconnected. Failed to send message.")
+        if client_id != sender_id:  # Skip sending the message to the sender
+            try:
+                await client_websocket.send(message)
+            except websockets.exceptions.ConnectionClosedError:
+                print(f"Client {client_id} is disconnected. Failed to send message.")
+
 
 async def send_message_to_client(recipient_id, message):
     if recipient_id in connected_clients:
