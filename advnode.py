@@ -75,7 +75,7 @@ async def disconnect_from_client(client_id):
 
 async def main():
     # Get the IP address of the machine on the LAN
-    ip_address = input("Enter the IP address of the other device: ")
+    ip_address = input("Enter your damn ip address: ") 
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
         
@@ -83,11 +83,10 @@ async def main():
         other_ip = input("Enter the IP address of the other device: ")
         async with websockets.connect(f"ws://{other_ip}:8765") as websocket:
             print(f"Connected to {other_ip}")
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                send_future = executor.submit(send_message_forever, websocket)
-                receive_future = executor.submit(receive_message_forever, websocket)
+            send_future = asyncio.create_task(send_message_forever(websocket))
+            receive_future = asyncio.create_task(receive_message_forever(websocket))
 
-                await asyncio.wait([send_future, receive_future], return_when=asyncio.FIRST_COMPLETED)
+            await asyncio.wait([send_future, receive_future], return_when=asyncio.FIRST_COMPLETED)
 
 async def send_message_forever(websocket):
     while True:
