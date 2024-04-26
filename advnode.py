@@ -48,7 +48,7 @@ async def send_message_to_client(recipient_id, message):
         print(f"Client {recipient_id} not found. Failed to send message.")
 
 async def main():
-    ip_address = input("Enter your damn ip address: ")
+    ip_address = input("Enter IP address of your device: ")
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
 
