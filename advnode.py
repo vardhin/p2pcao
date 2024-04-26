@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 import traceback
+from asyncore import loop
 import concurrent.futures
 
 connected_clients = {}
@@ -96,7 +97,14 @@ async def send_message(websocket, message):
 
 def display_message(websocket):
     while True:
-        message = await websocket.recv()
-        print(f"Received from client: {message}")
+        try:
+            message = websocket.recv()
+            print(f"Received from client: {message}")
+        except websockets.exceptions.ConnectionClosedError:
+            print("Connection to client closed.")
+            break
+        except Exception as e:
+            print(f"Error receiving message from client: {e}")
+            traceback.print_exc()
 
 asyncio.run(main())
