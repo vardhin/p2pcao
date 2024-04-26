@@ -27,10 +27,10 @@ async def handle_client(websocket, path):
             if client_id in connected_clients:
                 del connected_clients[client_id]
 
-def receive_messages(websocket, client_id):
+async def receive_messages(websocket, client_id):
     try:
         while True:
-            message = websocket.recv()
+            message = await websocket.recv()
             if not message:
                 break
             data = json.loads(message)
