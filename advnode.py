@@ -49,7 +49,7 @@ async def send_message_to_client(recipient_id, message):
 
 async def main():
     # Get the IP address of the machine on the LAN
-    ip_address = input("Enter your damn ip address: ") 
+    ip_address = input("Enter IP address of your device: ") 
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
         
