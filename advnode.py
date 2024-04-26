@@ -94,7 +94,7 @@ def send_message_forever(websocket):
 
 def receive_message_forever(websocket):
     while True:
-        response = websocket.recv()
+        response = await websocket.recv()
         if not response:
             break
         print(f"Received from server: {response}")
@@ -103,3 +103,4 @@ def send_message(websocket, message):
     websocket.send(json.dumps(message))
 
 asyncio.run(main())
+#final
