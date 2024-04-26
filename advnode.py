@@ -33,6 +33,8 @@ async def receive_messages(websocket, client_id):
             if 'to' in data and 'message' in data:
                 recipient_id = data['to']
                 await send_message_to_client(recipient_id, data['message'])
+            else:
+                print(f"Message from client {client_id}: {data}")
         except Exception as e:
             print(f"Error processing message from client {client_id}: {e}")
             traceback.print_exc()
@@ -48,7 +50,7 @@ async def send_message_to_client(recipient_id, message):
         print(f"Client {recipient_id} not found. Failed to send message.")
 
 async def main():
-    ip_address = input("Enter IP address of your device: ")
+    ip_address = input("Enter your damn ip address: ")
     async with websockets.serve(handle_client, ip_address, 8765):
         print(f"Server started at ws://{ip_address}:8765")
 
