@@ -5,6 +5,7 @@ import concurrent.futures
 from collections import defaultdict
 import datetime
 import emoji
+import asyncio
 import threading
 
 user_typing = defaultdict(bool)
@@ -125,11 +126,12 @@ def list_connected_clients():
     print(f"Connected clients: {clients}")
 
 def send_message_history(websocket):
+    global client_id
     for message in message_history.values():
         try:
             websocket.send(json.dumps(message))
         except websockets.exceptions.ConnectionClosedError:
-            print("Client is disconnected. Failed to send message history.")
+            print(f"Client {client_id} is disconnected. Failed to send message history.")
 
 def set_status(status, client_id):
     connected_clients[client_id]['status'] = status
@@ -142,6 +144,10 @@ def main():
     print(f"Server started at ws://{ip_address}:8765")
 
     try:
+        # Connect to the server as a client
+        client_uri = f"ws://{ip_address}:8765"
+        asyncio.get_event_loop().run_until_complete(connect_as_client(client_uri))
+
         while True:
             command = input("Enter command: ")
             if command == "/exit":
@@ -152,6 +158,15 @@ def main():
     except KeyboardInterrupt:
         print("Exiting due to keyboard interrupt...")
         server.close()
+
+async def connect_as_client(uri):
+    async with websockets.connect(uri) as websocket:
+        await send_messages_as_client(websocket)
+
+async def send_messages_as_client(websocket):
+    while True:
+        message = input("Enter message to send: ")
+        await websocket.send(json.dumps({"message": message}))
 
 if __name__ == "__main__":
     main()
