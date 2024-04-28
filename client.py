@@ -1,35 +1,61 @@
-from twisted.internet.protocol import DatagramProtocol
-from twisted.internet.protocol import reactor
-from random import randint
+from twisted.internet import reactor, protocol
+from twisted.protocols import basic
 
-class Client (DatagramProtocol):
-    def __init__(self, host,  port):
-        if host == "localhost":
-            host = "127.0.0.1"
+class ChatClientProtocol(basic.LineReceiver):
+    def connectionMade(self):
+        print("Connected to server")
+        self.send_message()
 
-        self.id = host, port
-        self.address = None
-        self. server = 'localhost', 9999
-        print("Working on id:", self.id)
+    def lineReceived(self, line):
+        print(f"Received message: {line.decode('utf-8')}")
+        self.send_message()
 
-    def startProtocol (self):
-        self. transport.write("ready". encode("utf-8"), self.server)
+    def send_message(self):
+        message = input("Enter your message: ")
+        if message:
+            self.sendLine(message.encode('utf-8'))
+            if message.strip() == "/exit":
+                exit_program()
+            elif message.strip() == "/disc":
+                disconnect()
+            elif message.strip() == "/connect":
+                connect()
+            else:
+                reactor.callLater(0.1, self.send_message)  # Schedule sending next message
 
-    def datagramReceived(self, datagram, addr):
-        datagram = datagram.decode('utf-8')
+    def connectionLost(self, reason):
+        print("Connection lost")
+        connect()
 
-        if addr == self.server:
-            print("Choose a client from these\n", datagram)
-            self.address = input("Write host:"), int(input("Write port:"))
-            reactor.callInThread(self.send_message)
+class ChatClientFactory(protocol.ClientFactory):
+    def buildProtocol(self, addr):
+        return ChatClientProtocol()
 
-        print(addr, ":", datagram)
+    def clientConnectionFailed(self, connector, reason):
+        print("Connection failed")
+        connect()
 
-    def  send_msg(self):
-        while True:
-            self.transport.write(input ("Enter message :").encode('utf-8'), self.address)
-
-if __name__ == '__main__':
-    port = randint(1000, 5000)
-    reactor.listenUDP(port, Client('localhost', port))
+def connect():
+    #ip="127.0.0.1"
+    #port=9999
+    print("Default: 127.0.0.1, 9999")
+    ip = input("Enter the ip of the friend: ")
+    port = int(input("Enter the port of the friend: "))
+    
+    print(f"Connecting to {ip}:{port}...")
+    reactor.connectTCP(ip, port, ChatClientFactory())
     reactor.run()
+
+def disconnect():
+    print("Disconnecting...")
+    reactor.disconnectAll()
+
+def exit_program():
+    print("exitting client interface...")
+    reactor.stop()
+
+def main():
+    connect()
+
+if __name__ == "__main__":
+    main()
